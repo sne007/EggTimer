@@ -15,7 +15,9 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity {
     SeekBar sb;
     TextView tv;
-
+    Button b;
+    CountDownTimer ct;
+    boolean counterIsActive = false;
 
     public void update(int secondsLeft){
         int minutes = (int) secondsLeft/60;
@@ -30,28 +32,44 @@ public class MainActivity extends AppCompatActivity {
 //        tv.setText(secondsString);
         tv.setText(minutesString + " : " + secondsString);
     }
+    public void resetTimer(){
+        sb.setEnabled(true);
+        sb.setProgress(30);
+        tv.setText("0 : 30");
+        counterIsActive = false;
+        ct.cancel();
+    }
     public void controlTimer(View view){
-        new CountDownTimer(sb.getProgress()*1000 + 100,1000){
 
-            @Override
-            public void onTick(long millisUntilFinished) {
-                update((int)millisUntilFinished/1000);
-            }
+        if(counterIsActive == false){
+            counterIsActive = true;
+            sb.setEnabled(false);
 
-            @Override
-            public void onFinish() {
-                tv.setText("0 : 00");
-                MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.horn);
-                mediaPlayer.start();
-            }
-        }.start();
+            ct = new CountDownTimer(sb.getProgress()*1000 + 100,1000){
+
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    update((int)millisUntilFinished/1000);
+                }
+
+                @Override
+                public void onFinish() {
+                    tv.setText("0 : 00");
+                    MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.horn);
+                    mediaPlayer.start();
+                }
+            }.start();
+        }
+        else{
+            resetTimer();
+        }
     }
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button b = (Button) findViewById(R.id.button);
+        b = (Button) findViewById(R.id.button);
         sb = (SeekBar) findViewById(R.id.seekBar);
         tv = (TextView) findViewById(R.id.textView);
 
@@ -77,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                Log.i("go:" , b.getText());
+                if(b.getText().toString().equals("Go"))
+                    b.setText("Stop");
+                else
+                    b.setText("Go");
+
                 controlTimer(v);
             }
         });
